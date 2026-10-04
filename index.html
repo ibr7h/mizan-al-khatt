@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="ميزان الخط">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=0.3.0">
+  <link rel="stylesheet" href="./styles.css?v=0.4.0">
   <title>ميزان الخط — حرف الألف</title>
 </head>
 <body>
@@ -23,7 +23,7 @@
       </div>
     </div>
     <div class="header-meta">
-      <span class="version">v0.3.0</span>
+      <span class="version">v0.4.0</span>
       <button id="installBtn" class="icon-btn" type="button" hidden aria-label="تثبيت التطبيق">＋</button>
     </div>
   </header>
@@ -127,28 +127,61 @@
       </div>
 
       <div id="worksheet" class="worksheet" hidden>
-        <div class="worksheet-title">
+        <div class="worksheet-title worksheet-screen-only">
           <div>
             <span>ورقة التدريب</span>
             <strong>الألف المفردة في خط النسخ</strong>
           </div>
           <span class="worksheet-badge">5 نقاط</span>
         </div>
-        <section class="worksheet-section worksheet-alif-section">
-          <div class="worksheet-section-head">
-            <strong>التدريب على الألف المفردة</strong>
-            <span>نموذج ← تتبّع ← تتبّع</span>
-          </div>
-          <div id="practiceRows" class="practice-rows"></div>
-        </section>
 
-        <section class="worksheet-section worksheet-context-section">
-          <div class="worksheet-section-head">
-            <strong>الألف داخل الكلمات</strong>
-            <span>تمييز الحرف المستهدف ثم التتبّع السياقي</span>
+        <div class="worksheet-toolbar worksheet-screen-only" aria-label="أدوات ورقة التدريب">
+          <button id="worksheetDrawToggle" type="button" class="worksheet-tool is-active" aria-pressed="true">
+            <span class="tool-dot"></span><span>الكتابة</span>
+          </button>
+          <button id="worksheetUndoBtn" type="button" class="worksheet-tool"><span>↶</span><span>تراجع</span></button>
+          <button id="worksheetClearBtn" type="button" class="worksheet-tool"><span>×</span><span>مسح الحبر</span></button>
+          <button id="worksheetPrintBtn" type="button" class="worksheet-tool primary"><span>⎙</span><span>طباعة A4</span></button>
+        </div>
+
+        <div class="worksheet-page-viewport">
+          <div id="worksheetPage" class="worksheet-page">
+            <header class="worksheet-print-header">
+              <div class="worksheet-print-brand">
+                <span>ميزان الخط</span>
+                <strong>ورقة تدريب حرف الألف — خط النسخ</strong>
+              </div>
+              <div class="worksheet-student-fields">
+                <label>اسم الطالب <input id="worksheetStudentName" type="text" autocomplete="name" placeholder="................................"></label>
+                <label>التاريخ <input id="worksheetDate" type="text" inputmode="numeric" placeholder=".... / .... / ........"></label>
+              </div>
+            </header>
+
+            <section class="worksheet-section worksheet-alif-section">
+              <div class="worksheet-section-head">
+                <strong>التدريب على الألف المفردة</strong>
+                <span>نموذج ← تتبّع ← تتبّع</span>
+              </div>
+              <div id="practiceRows" class="practice-rows"></div>
+            </section>
+
+            <section class="worksheet-section worksheet-context-section">
+              <div class="worksheet-section-head">
+                <strong>الألف داخل الكلمات</strong>
+                <span>تمييز الحرف المستهدف ثم التتبّع السياقي</span>
+              </div>
+              <div id="contextExamples" class="context-examples"></div>
+            </section>
+
+            <footer class="worksheet-print-footer">
+              <span>حرف الألف — 5 نقاط</span>
+              <span>© 2026 Ibrahim Alneami</span>
+            </footer>
+
+            <canvas id="worksheetInkCanvas" width="1120" height="1584" aria-label="طبقة الكتابة على ورقة التدريب"></canvas>
+            <img id="worksheetPrintInk" alt="" aria-hidden="true">
           </div>
-          <div id="contextExamples" class="context-examples"></div>
-        </section>
+        </div>
       </div>
     </section>
   </main>
@@ -158,6 +191,6 @@
     <span>© 2026 Ibrahim Alneami — All Rights Reserved</span>
   </footer>
 
-  <script src="./app.js?v=0.3.0"></script>
+  <script src="./app.js?v=0.4.0"></script>
 </body>
 </html>
