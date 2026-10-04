@@ -45,23 +45,23 @@
     "contextualExamples": [
       {
         "id": "amwaj",
-        "display": "أمواج",
-        "prefixTarget": "أ",
-        "rest": "مواج",
+        "display": "أَمْوَاجٌ",
+        "target": "أَ",
+        "rest": "مْوَاجٌ",
         "targetIndex": 0
       },
       {
         "id": "ibriq",
-        "display": "إبريق",
-        "prefixTarget": "إ",
-        "rest": "بريق",
+        "display": "إِبْرِيقٌ",
+        "target": "إِ",
+        "rest": "بْرِيقٌ",
         "targetIndex": 0
       },
       {
         "id": "iqra",
-        "display": "اقرأ",
-        "prefixTarget": "ا",
-        "rest": "قرأ",
+        "display": "اِقْرَأْ",
+        "target": "اِ",
+        "rest": "قْرَأْ",
         "targetIndex": 0
       }
     ]
