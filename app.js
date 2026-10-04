@@ -317,6 +317,7 @@
   function makeStroke(firstPoint) {
     return {
       points:[firstPoint],
+      started:false,
       color:state.brushColor,
       pointSize:state.pointSize,
       nibAngleDeg:state.nibAngleDeg,
@@ -377,7 +378,17 @@
     const prev = points[points.length-1];
 
     const distRaw = Math.hypot(raw.x-prev.x,raw.y-prev.y);
-    if (distRaw < .35) return;
+
+    // Ignore duplicate/coalesced samples and tiny contact jitter.
+    // Do not create any ink merely because the pen touched the screen.
+    const startThreshold = Math.max(2.5, stroke.pointSize * 0.055);
+    if (!stroke.started) {
+      if (distRaw < startThreshold) return;
+      stroke.started = true;
+      state.strokes.push(stroke);
+    } else if (distRaw < .35) {
+      return;
+    }
 
     // Ported from AliQaseef: adaptive low-pass smoothing.
     // Slow movement gets more stabilization; fast movement gets more response.
@@ -419,14 +430,9 @@
     e.preventDefault();
     canvas.setPointerCapture?.(e.pointerId);
 
+    // Pending stroke only. A simple touch/tap must never leave a qalam dot.
     const first = canvasPoint(e);
     state.currentStroke = makeStroke(first);
-    state.strokes.push(state.currentStroke);
-
-    ctx.fillStyle = state.currentStroke.color;
-    ctx.globalAlpha = .96;
-    fillNibStamp(ctx,first,strokeGeometry(state.currentStroke));
-    ctx.globalAlpha = 1;
   });
 
   canvas.addEventListener('pointermove', e => {
@@ -448,12 +454,26 @@
     if (!state.currentStroke) return;
     e.preventDefault();
     processPointerSample(e);
+
+    // If the pen never crossed the movement threshold, discard the contact.
+    // This prevents isolated nib stamps from appearing later on redraw.
+    if (!state.currentStroke.started) {
+      state.currentStroke = null;
+      return;
+    }
+
     state.currentStroke = null;
   };
 
   canvas.addEventListener('pointerup',endStroke);
-  canvas.addEventListener('pointercancel',()=>{state.currentStroke=null;});
-  canvas.addEventListener('lostpointercapture',()=>{state.currentStroke=null;});
+  canvas.addEventListener('pointercancel',()=>{
+    if (state.currentStroke && !state.currentStroke.started) state.currentStroke = null;
+    else state.currentStroke = null;
+  });
+  canvas.addEventListener('lostpointercapture',()=>{
+    if (state.currentStroke && !state.currentStroke.started) state.currentStroke = null;
+    else state.currentStroke = null;
+  });
 
   function redrawInk() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -465,10 +485,7 @@
       ctx.fillStyle = stroke.color || '#173f3b';
       ctx.globalAlpha = .96;
 
-      if (stroke.points.length===1) {
-        fillNibStamp(ctx,stroke.points[0],m);
-        continue;
-      }
+      if (stroke.points.length < 2 || stroke.started === false) continue;
 
       for (let i=1;i<stroke.points.length;i++) {
         fillNibSegment(ctx,stroke.points[i-1],stroke.points[i],m);
@@ -484,7 +501,9 @@
     }
 
     const m = getMizanGeometry();
-    const pts = state.strokes.flatMap(stroke => Array.isArray(stroke?.points) ? stroke.points : []);
+    const pts = state.strokes.flatMap(stroke =>
+      stroke?.started !== false && Array.isArray(stroke?.points) ? stroke.points : []
+    );
     if (!pts.length) return;
 
     let err=0,count=0,minY=Infinity,maxY=-Infinity;
