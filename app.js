@@ -343,8 +343,7 @@
     examples.forEach(example => {
       const card = document.createElement('article');
       card.className = 'context-example-card';
-      card.innerHTML = '<div class="context-example-name">'+(example.display || '')+'</div>' +
-        renderContextWord(example,1) +
+      card.innerHTML = renderContextWord(example,1) +
         renderContextWord(example,.10) +
         renderContextWord(example,.10);
       contextHost.appendChild(card);
