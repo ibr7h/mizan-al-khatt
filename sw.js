@@ -1,4 +1,4 @@
-const CACHE = 'mizan-al-khatt-v0.3.0';
+const CACHE = 'mizan-al-khatt-v0.4.0';
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './manifest.webmanifest',
   './version.json', './data/alif.json', './icons/icon-192.png', './icons/icon-512.png'
