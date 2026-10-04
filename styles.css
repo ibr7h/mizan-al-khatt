@@ -12,3 +12,24 @@ button,input,select,textarea{font:inherit}.app-header{height:72px;display:flex;a
 .app-footer{display:flex;justify-content:space-between;gap:10px;padding:16px 24px;color:#8a8178;font-size:8px;max-width:1500px;margin:0 auto}
 @media(max-width:900px){.app-header{height:62px;padding-inline:14px}.brand p{display:none}.brand h1{font-size:16px}.brand-mark{width:35px;height:35px}.app-shell{grid-template-columns:1fr;padding:12px;gap:12px}.control-panel{order:2}.workspace{order:1}.control-panel{display:grid;grid-template-columns:1fr 1fr;align-items:start}.panel-head,.mode-switch{grid-column:1/-1}.workspace-head{align-items:start}.legend{display:none}.stage{border-radius:16px}.control-card{min-height:100%}.worksheet{padding:10px}.practice-row{min-height:115px}.practice-cell svg{height:86px}.app-footer{padding:12px;flex-direction:column;align-items:center}}
 @media(max-width:560px){.control-panel{grid-template-columns:1fr}.workspace-head h2{font-size:16px}.stage{aspect-ratio:4/3}.stage-note{left:8px;bottom:8px;font-size:8px}.mode-switch{grid-template-columns:repeat(4,1fr)}.mode-btn{font-size:9px}.worksheet-title strong{font-size:14px}.practice-row{grid-template-columns:repeat(4,1fr);min-height:210px}.practice-cell{min-height:100px}.practice-baseline{bottom:22px}.app-footer{font-size:7px}}
+.mizan-law-readout{
+  margin:10px 0 6px;
+  padding:9px 10px;
+  border-radius:12px;
+  background:#f6efe1;
+  border:1px solid rgba(182,147,54,.18);
+  display:grid;
+  gap:6px
+}
+.mizan-law-readout>div{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  font-size:9px;
+  color:#6c6258
+}
+.mizan-law-readout strong{
+  color:#7a5c18;
+  font:800 9px ui-monospace,monospace
+}
