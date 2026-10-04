@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#8E1F4F">
+  <meta name="description" content="ميزان الخط — مختبر تعليمي لهندسة الخط العربي وميزان النقاط والتتبع.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ميزان الخط">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css?v=0.1.0">
+  <title>ميزان الخط — حرف الألف</title>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">م</div>
+      <div>
+        <h1>ميزان الخط</h1>
+        <p>هندسة الخط العربي — النموذج المرجعي الأول</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="version">v0.1.0</span>
+      <button id="installBtn" class="icon-btn" type="button" hidden aria-label="تثبيت التطبيق">＋</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="control-panel" aria-label="إعدادات حرف الألف">
+      <div class="panel-head">
+        <div>
+          <span class="eyebrow">الحرف الحالي</span>
+          <strong id="letterName">الألف المفردة</strong>
+        </div>
+        <span class="letter-chip" id="letterChip">ا</span>
+      </div>
+
+      <nav class="mode-switch" aria-label="أوضاع التدريب">
+        <button class="mode-btn is-active" data-mode="explain">الشرح</button>
+        <button class="mode-btn" data-mode="trace">التتبّع</button>
+        <button class="mode-btn" data-mode="free">كتابة حرة</button>
+        <button class="mode-btn" data-mode="worksheet">ورقة تدريب</button>
+      </nav>
+
+      <section class="control-card">
+        <div class="control-title">القياس والعرض</div>
+        <label class="control-row">
+          <span>حجم نقطة القصبة</span>
+          <div><input id="pointSize" type="range" min="12" max="42" value="24"><output id="pointSizeOut">24px</output></div>
+        </label>
+        <label class="control-row">
+          <span>شفافية النموذج</span>
+          <div><input id="guideOpacity" type="range" min="5" max="100" value="32"><output id="guideOpacityOut">32%</output></div>
+        </label>
+        <label class="toggle-row"><span>إظهار نقاط الميزان</span><input id="showPoints" type="checkbox" checked></label>
+        <label class="toggle-row"><span>إظهار اتجاه الضربة</span><input id="showDirection" type="checkbox" checked></label>
+        <label class="toggle-row"><span>إظهار خطوط القياس</span><input id="showGuides" type="checkbox" checked></label>
+      </section>
+
+      <section class="control-card lesson-card">
+        <div class="control-title">قاعدة الألف</div>
+        <p><strong>الارتفاع:</strong> <span id="heightPoints">5 نقاط</span></p>
+        <p><strong>الضربات:</strong> ضربة واحدة من أعلى إلى أسفل.</p>
+        <p><strong>المرجع:</strong> خط القمة ← خط الأساس.</p>
+        <p class="draft-note">هندسة الإصدار الحالي مرجعية أولية، وستُعاير بالنماذج التي ستزوّد المشروع بها.</p>
+      </section>
+
+      <section class="control-card actions-card">
+        <div class="control-title">أدوات التدريب</div>
+        <div class="action-grid">
+          <button id="undoBtn" type="button">تراجع</button>
+          <button id="clearBtn" type="button">مسح</button>
+          <button id="evaluateBtn" type="button" class="primary">تقييم التتبّع</button>
+        </div>
+        <div id="scoreBox" class="score-box" hidden>
+          <span>نتيجة تقريبية</span>
+          <strong id="scoreValue">—</strong>
+          <small id="scoreHint">ارسم فوق النموذج ثم اضغط التقييم.</small>
+        </div>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <div class="workspace-head">
+        <div>
+          <span class="eyebrow">خط النسخ</span>
+          <h2 id="workspaceTitle">تشريح حرف الألف</h2>
+        </div>
+        <div class="legend">
+          <span><i class="swatch burgundy"></i>النموذج</span>
+          <span><i class="swatch teal"></i>مسارك</span>
+          <span><i class="diamond-mini"></i>نقطة القصبة</span>
+        </div>
+      </div>
+
+      <div id="stage" class="stage" data-mode="explain">
+        <svg id="guideSvg" class="guide-svg" viewBox="0 0 1000 720" role="img" aria-label="هندسة حرف الألف"></svg>
+        <canvas id="inkCanvas" width="1000" height="720" aria-label="لوحة تدريب حرف الألف"></canvas>
+        <div class="stage-note" id="stageNote">اسحب القلم من أعلى الألف إلى خط الأساس.</div>
+      </div>
+
+      <div id="worksheet" class="worksheet" hidden>
+        <div class="worksheet-title">
+          <div>
+            <span>ورقة التدريب</span>
+            <strong>الألف المفردة في خط النسخ</strong>
+          </div>
+          <span class="worksheet-badge">5 نقاط</span>
+        </div>
+        <div id="practiceRows" class="practice-rows"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>ميزان الخط — نموذج تعليمي تجريبي</span>
+    <span>© 2026 Ibrahim Alneami — All Rights Reserved</span>
+  </footer>
+
+  <script src="./app.js?v=0.1.0"></script>
+</body>
+</html>
