@@ -213,3 +213,392 @@ button,input,select,textarea{font:inherit}.app-header{height:72px;display:flex;a
     font-size:42px;
   }
 }
+
+/* ============================================================
+   v0.4.0 — Interactive professional A4 worksheet
+   ============================================================ */
+.worksheet{
+  position:relative;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  padding:0;
+}
+
+.worksheet-title{
+  margin-bottom:8px;
+}
+
+.worksheet-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex-wrap:wrap;
+  gap:6px;
+  margin:0 0 10px;
+  padding:7px;
+  border-radius:14px;
+  background:rgba(255,253,248,.95);
+  border:1px solid rgba(111,74,55,.12);
+  box-shadow:0 7px 22px rgba(68,48,38,.07);
+}
+
+.worksheet-tool{
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:6px 10px;
+  border-radius:9px;
+  border:1px solid rgba(111,74,55,.13);
+  background:#fff;
+  color:#514942;
+  font-size:9px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.worksheet-tool.is-active{
+  color:#175f57;
+  border-color:rgba(21,114,111,.25);
+  background:#edf7f4;
+}
+
+.worksheet-tool.primary{
+  margin-inline-start:auto;
+  color:#fff;
+  border-color:var(--burgundy-dark);
+  background:var(--burgundy-dark);
+}
+
+.tool-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:currentColor;
+  box-shadow:0 0 0 3px rgba(21,114,111,.09);
+}
+
+.worksheet-page-viewport{
+  --worksheet-scale:1;
+  position:relative;
+  width:100%;
+  overflow:hidden;
+  border-radius:18px;
+  transition:height .15s ease;
+}
+
+.worksheet-page{
+  position:absolute;
+  top:0;
+  left:50%;
+  width:794px;
+  height:1123px;
+  transform:translateX(-50%) scale(var(--worksheet-scale));
+  transform-origin:top center;
+  overflow:hidden;
+  background:#fffefa;
+  color:#201c19;
+  border:1px solid rgba(111,74,55,.14);
+  border-radius:3px;
+  box-shadow:0 18px 44px rgba(65,45,34,.13);
+  padding:26px 34px 30px;
+  isolation:isolate;
+}
+
+.worksheet-print-header{
+  position:relative;
+  z-index:5;
+  min-height:72px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid #e8e4de;
+}
+
+.worksheet-print-brand span{
+  display:block;
+  color:var(--gold);
+  font-size:9px;
+  font-weight:800;
+}
+
+.worksheet-print-brand strong{
+  display:block;
+  margin-top:3px;
+  color:var(--burgundy-dark);
+  font-size:18px;
+}
+
+.worksheet-student-fields{
+  min-width:310px;
+  display:grid;
+  grid-template-columns:1.4fr 1fr;
+  gap:10px;
+}
+
+.worksheet-student-fields label{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  color:#71685f;
+  font-size:8px;
+  font-weight:700;
+}
+
+.worksheet-student-fields input{
+  width:100%;
+  height:28px;
+  padding:3px 5px;
+  border:0;
+  border-bottom:1px solid #bdb7af;
+  border-radius:0;
+  outline:0;
+  background:transparent;
+  color:#24201d;
+  font-size:10px;
+}
+
+.worksheet-page .worksheet-section{
+  position:relative;
+  z-index:1;
+  margin-top:12px;
+  padding-top:0;
+}
+
+.worksheet-page .worksheet-section + .worksheet-section{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid #eeeae4;
+}
+
+.worksheet-page .worksheet-section-head{
+  margin:0 0 4px;
+}
+
+.worksheet-page .worksheet-section-head strong{
+  font-size:10px;
+}
+
+.worksheet-page .worksheet-section-head span{
+  font-size:7px;
+}
+
+.worksheet-page .practice-rows{
+  overflow:visible;
+}
+
+.worksheet-page .practice-row{
+  grid-template-columns:repeat(var(--worksheet-columns,9),minmax(0,1fr)) !important;
+  min-width:0 !important;
+  min-height:119px;
+}
+
+.worksheet-page .practice-cell svg{
+  width:72%;
+  height:95px;
+}
+
+.worksheet-page .practice-baseline{
+  bottom:20px;
+}
+
+.worksheet-page .context-examples{
+  gap:12px;
+}
+
+.worksheet-page .context-example-card{
+  border-radius:0;
+  background:transparent;
+}
+
+.worksheet-page .context-word-line{
+  min-height:115px;
+  padding:0 6px 20px;
+}
+
+.worksheet-page .context-baseline{
+  bottom:20px;
+}
+
+.worksheet-page .context-word-text{
+  font-size:49px;
+}
+
+.worksheet-print-footer{
+  position:absolute;
+  z-index:5;
+  left:34px;
+  right:34px;
+  bottom:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  color:#a29a91;
+  font-size:7px;
+  border-top:1px solid #efebe5;
+  padding-top:6px;
+}
+
+#worksheetInkCanvas,
+#worksheetPrintInk{
+  position:absolute;
+  z-index:3;
+  inset:0;
+  width:100%;
+  height:100%;
+}
+
+#worksheetInkCanvas{
+  touch-action:none;
+  cursor:crosshair;
+}
+
+#worksheetInkCanvas.is-disabled{
+  pointer-events:none;
+  cursor:default;
+}
+
+#worksheetPrintInk{
+  display:none;
+  pointer-events:none;
+  object-fit:fill;
+}
+
+.worksheet-print-header,
+.worksheet-print-footer{
+  pointer-events:auto;
+}
+
+@media(max-width:680px){
+  .worksheet-toolbar{
+    position:sticky;
+    bottom:8px;
+    z-index:15;
+    justify-content:center;
+  }
+
+  .worksheet-tool{
+    flex:1 1 auto;
+    padding-inline:7px;
+  }
+
+  .worksheet-tool.primary{
+    margin-inline-start:0;
+  }
+
+  .worksheet-page .context-examples{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .worksheet-page .context-example-card{
+    display:block;
+  }
+
+  .worksheet-page .context-word-line{
+    min-height:115px;
+  }
+
+  .worksheet-page .context-word-line + .context-word-line{
+    border-right:0;
+  }
+
+  .worksheet-page .context-word-text{
+    font-size:49px;
+  }
+}
+
+/* ---------------- A4 print contract ---------------- */
+@page{
+  size:A4 portrait;
+  margin:0;
+}
+
+@media print{
+  html,body{
+    width:210mm;
+    height:297mm;
+    margin:0 !important;
+    padding:0 !important;
+    background:#fff !important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  .app-header,
+  .control-panel,
+  .workspace-head,
+  .app-footer,
+  .worksheet-screen-only,
+  #stage{
+    display:none !important;
+  }
+
+  .app-shell,
+  .workspace,
+  #worksheet,
+  .worksheet-page-viewport{
+    display:block !important;
+    width:210mm !important;
+    height:297mm !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    border:0 !important;
+    box-shadow:none !important;
+    background:#fff !important;
+  }
+
+  .worksheet-page{
+    position:relative !important;
+    top:auto !important;
+    left:auto !important;
+    width:210mm !important;
+    height:297mm !important;
+    transform:none !important;
+    margin:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    padding:7mm 9mm 8mm !important;
+    background:#fff !important;
+  }
+
+  #worksheetInkCanvas{
+    display:none !important;
+  }
+
+  #worksheetPrintInk{
+    display:block !important;
+  }
+
+  .worksheet-print-header{
+    min-height:19mm;
+  }
+
+  .worksheet-student-fields input{
+    color:#111 !important;
+    -webkit-text-fill-color:#111 !important;
+  }
+
+  .worksheet-page .practice-row{
+    min-height:31mm;
+  }
+
+  .worksheet-page .practice-cell svg{
+    height:25mm;
+  }
+
+  .worksheet-page .context-word-line{
+    min-height:29mm;
+  }
+
+  .worksheet-page .context-word-text{
+    font-size:13mm;
+  }
+}
