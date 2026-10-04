@@ -85,3 +85,131 @@ button,input,select,textarea{font:inherit}.app-header{height:72px;display:flex;a
 @media(max-width:560px){
   .brush-control-grid{grid-template-columns:1fr}
 }
+
+/* ============================================================
+   v0.3.0 — Reference worksheet layout
+   ============================================================ */
+.worksheet-section{
+  margin-top:14px;
+  padding-top:2px;
+}
+.worksheet-section + .worksheet-section{
+  margin-top:22px;
+  padding-top:18px;
+  border-top:1px solid rgba(111,74,55,.10);
+}
+.worksheet-section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 2px 8px;
+}
+.worksheet-section-head strong{
+  color:#4a433c;
+  font-size:11px;
+}
+.worksheet-section-head span{
+  color:#9a9187;
+  font-size:8px;
+}
+.practice-rows{
+  overflow-x:auto;
+  overscroll-behavior-inline:contain;
+  scrollbar-width:thin;
+}
+.practice-row{
+  grid-template-columns:repeat(var(--worksheet-columns,9),minmax(72px,1fr)) !important;
+  min-width:820px;
+  min-height:142px;
+}
+.practice-cell svg{
+  width:74%;
+  height:116px;
+  overflow:visible;
+}
+.practice-baseline{
+  bottom:25px;
+  background:#ebe8e3;
+}
+.context-examples{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+}
+.context-example-card{
+  min-width:0;
+  background:rgba(255,255,255,.22);
+  border-radius:14px;
+  overflow:hidden;
+}
+.context-word-line{
+  --word-opacity:1;
+  position:relative;
+  min-height:142px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  padding:0 10px 25px;
+  opacity:var(--word-opacity);
+}
+.context-word-line + .context-word-line{
+  border-top:0;
+}
+.context-baseline{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:25px;
+  height:1px;
+  background:#ebe8e3;
+  z-index:0;
+}
+.context-word-text{
+  position:relative;
+  z-index:1;
+  direction:rtl;
+  unicode-bidi:isolate;
+  white-space:nowrap;
+  color:#171412;
+  font-family:"Amiri","Geeza Pro","Noto Naskh Arabic","Tahoma",serif;
+  font-size:58px;
+  line-height:1;
+  font-weight:500;
+  transform:translateY(2px);
+}
+.context-target-alif{
+  color:#b11f58;
+}
+.context-rest{
+  color:#171412;
+}
+@media(max-width:900px){
+  .context-word-text{font-size:50px}
+  .context-examples{gap:10px}
+}
+@media(max-width:680px){
+  .worksheet-section-head{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:3px;
+  }
+  .context-examples{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .context-example-card{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+  }
+  .context-word-line{
+    min-height:120px;
+    padding-inline:4px;
+  }
+  .context-word-line + .context-word-line{
+    border-right:1px solid #f0ede8;
+  }
+  .context-word-text{
+    font-size:42px;
+  }
+}
