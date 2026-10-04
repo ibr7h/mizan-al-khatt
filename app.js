@@ -28,6 +28,8 @@
     mode:'explain',
     pointSize:48,
     nibAngleDeg:70,
+    brushColor:'#173f3b',
+    aliSmoothing:.28,
     guideOpacity:.32,
     showPoints:true,
     showDirection:true,
@@ -54,6 +56,8 @@
     const savedPoint = Number(localStorage.getItem('mizan-point-size'));
     const savedAngle = Number(localStorage.getItem('mizan-nib-angle'));
     const savedOpacity = Number(localStorage.getItem('mizan-guide-opacity'));
+    const savedColor = localStorage.getItem('mizan-brush-color');
+    const savedSmoothing = Number(localStorage.getItem('mizan-ali-smoothing'));
 
     state.pointSize = Number.isFinite(savedPoint) ? clamp(savedPoint,24,64) : 48;
     state.nibAngleDeg = Number.isFinite(savedAngle)
@@ -62,6 +66,10 @@
     state.guideOpacity = Number.isFinite(savedOpacity)
       ? clamp(savedOpacity,5,100)/100
       : .32;
+    state.brushColor = /^#[0-9a-f]{6}$/i.test(savedColor || '') ? savedColor : '#173f3b';
+    state.aliSmoothing = Number.isFinite(savedSmoothing)
+      ? clamp(savedSmoothing,0,70)/100
+      : .28;
 
     $('pointSize').value = state.pointSize;
     $('pointSizeOut').textContent = state.pointSize + 'px';
@@ -69,6 +77,9 @@
     $('nibAngleOut').textContent = state.nibAngleDeg + '°';
     $('guideOpacity').value = Math.round(state.guideOpacity * 100);
     $('guideOpacityOut').textContent = Math.round(state.guideOpacity * 100) + '%';
+    $('brushColor').value = state.brushColor;
+    $('aliSmoothing').value = Math.round(state.aliSmoothing * 100);
+    $('aliSmoothingOut').textContent = Math.round(state.aliSmoothing * 100) + '%';
 
     $('letterName').textContent = state.data.nameAr;
     $('letterChip').textContent = state.data.letter;
@@ -299,38 +310,43 @@
     return {
       x:(e.clientX-r.left)*canvas.width/r.width,
       y:(e.clientY-r.top)*canvas.height/r.height,
-      pressure:e.pressure||.6
+      pressure:(e.pressure && e.pressure > 0) ? e.pressure : .65
     };
   }
 
-  canvas.addEventListener('pointerdown', e => {
-    if (state.mode==='explain' || state.mode==='worksheet') return;
-    e.preventDefault();
-    canvas.setPointerCapture?.(e.pointerId);
-    state.currentStroke = [canvasPoint(e)];
-    state.strokes.push(state.currentStroke);
-    redrawInk();
-  });
+  function makeStroke(firstPoint) {
+    return {
+      points:[firstPoint],
+      color:state.brushColor,
+      pointSize:state.pointSize,
+      nibAngleDeg:state.nibAngleDeg,
+      smoothing:state.aliSmoothing
+    };
+  }
 
-  canvas.addEventListener('pointermove', e => {
-    if (!state.currentStroke) return;
-    e.preventDefault();
-    const p = canvasPoint(e);
-    const last = state.currentStroke[state.currentStroke.length-1];
-    if (Math.hypot(p.x-last.x,p.y-last.y)>1.5) state.currentStroke.push(p);
-    redrawInk();
-  });
+  function strokeGeometry(stroke) {
+    return getMizanGeometry({
+      pointSize:stroke.pointSize,
+      angleDeg:stroke.nibAngleDeg
+    });
+  }
 
-  const endStroke = e => {
-    if (!state.currentStroke) return;
-    state.currentStroke.push(canvasPoint(e));
-    state.currentStroke = null;
-    redrawInk();
-  };
-  canvas.addEventListener('pointerup',endStroke);
-  canvas.addEventListener('pointercancel',()=>{state.currentStroke=null;});
+  function fillNibStamp(context,p,m) {
+    context.save();
+    context.translate(p.x,p.y);
+    context.rotate(-m.alpha);
+    context.fillRect(-m.S/2,-m.S/2,m.S,m.S);
+    context.restore();
+  }
 
   function fillNibSegment(context,p0,p1,m) {
+    const dx = p1.x-p0.x;
+    const dy = p1.y-p0.y;
+    if (Math.hypot(dx,dy) < .25) {
+      fillNibStamp(context,p1,m);
+      return;
+    }
+
     const half = m.S/2;
     const vx = Math.cos(m.alpha)*half;
     const vy = -Math.sin(m.alpha)*half;
@@ -344,16 +360,118 @@
     context.fill();
   }
 
+  function drawStrokeSegment(stroke,p0,p1) {
+    const m = strokeGeometry(stroke);
+    ctx.fillStyle = stroke.color;
+    ctx.globalAlpha = .96;
+    fillNibSegment(ctx,p0,p1,m);
+    ctx.globalAlpha = 1;
+  }
+
+  function processPointerSample(e) {
+    const stroke = state.currentStroke;
+    if (!stroke) return;
+
+    const raw = canvasPoint(e);
+    const points = stroke.points;
+    const prev = points[points.length-1];
+
+    const distRaw = Math.hypot(raw.x-prev.x,raw.y-prev.y);
+    if (distRaw < .35) return;
+
+    // Ported from AliQaseef: adaptive low-pass smoothing.
+    // Slow movement gets more stabilization; fast movement gets more response.
+    const smoothness = clamp(stroke.smoothing,0,.70);
+    const baseAlpha = 1 - Math.min(.92,Math.max(.08,smoothness));
+    const speedBoost = Math.min(.65,distRaw/28);
+    const effectiveAlpha = Math.min(.96,baseAlpha+speedBoost);
+
+    const smoothed = {
+      x:prev.x+(raw.x-prev.x)*effectiveAlpha,
+      y:prev.y+(raw.y-prev.y)*effectiveAlpha,
+      pressure:prev.pressure+(raw.pressure-prev.pressure)*effectiveAlpha
+    };
+
+    const lastDrawn = points[points.length-1];
+    const dist = Math.hypot(smoothed.x-lastDrawn.x,smoothed.y-lastDrawn.y);
+
+    // Small interpolation steps keep curves continuous without redrawing
+    // the whole canvas on every pointer event.
+    const stepSize = Math.max(2.2,stroke.pointSize*.075);
+    const steps = Math.max(1,Math.min(8,Math.ceil(dist/stepSize)));
+
+    let from = lastDrawn;
+    for (let i=1;i<=steps;i++) {
+      const t=i/steps;
+      const p={
+        x:lastDrawn.x+(smoothed.x-lastDrawn.x)*t,
+        y:lastDrawn.y+(smoothed.y-lastDrawn.y)*t,
+        pressure:lastDrawn.pressure+(smoothed.pressure-lastDrawn.pressure)*t
+      };
+      points.push(p);
+      drawStrokeSegment(stroke,from,p);
+      from=p;
+    }
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    if (state.mode==='explain' || state.mode==='worksheet') return;
+    e.preventDefault();
+    canvas.setPointerCapture?.(e.pointerId);
+
+    const first = canvasPoint(e);
+    state.currentStroke = makeStroke(first);
+    state.strokes.push(state.currentStroke);
+
+    ctx.fillStyle = state.currentStroke.color;
+    ctx.globalAlpha = .96;
+    fillNibStamp(ctx,first,strokeGeometry(state.currentStroke));
+    ctx.globalAlpha = 1;
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (!state.currentStroke) return;
+    e.preventDefault();
+
+    const events = typeof e.getCoalescedEvents === 'function'
+      ? e.getCoalescedEvents()
+      : [e];
+
+    if (events.length) {
+      for (const sample of events) processPointerSample(sample);
+    } else {
+      processPointerSample(e);
+    }
+  });
+
+  const endStroke = e => {
+    if (!state.currentStroke) return;
+    e.preventDefault();
+    processPointerSample(e);
+    state.currentStroke = null;
+  };
+
+  canvas.addEventListener('pointerup',endStroke);
+  canvas.addEventListener('pointercancel',()=>{state.currentStroke=null;});
+  canvas.addEventListener('lostpointercapture',()=>{state.currentStroke=null;});
+
   function redrawInk() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    const m = getMizanGeometry();
-    ctx.fillStyle = '#15726f';
-    ctx.globalAlpha = .92;
 
     for (const stroke of state.strokes) {
-      if (stroke.length<2) continue;
-      for (let i=1;i<stroke.length;i++) {
-        fillNibSegment(ctx,stroke[i-1],stroke[i],m);
+      if (!stroke || !Array.isArray(stroke.points) || !stroke.points.length) continue;
+
+      const m = strokeGeometry(stroke);
+      ctx.fillStyle = stroke.color || '#173f3b';
+      ctx.globalAlpha = .96;
+
+      if (stroke.points.length===1) {
+        fillNibStamp(ctx,stroke.points[0],m);
+        continue;
+      }
+
+      for (let i=1;i<stroke.points.length;i++) {
+        fillNibSegment(ctx,stroke.points[i-1],stroke.points[i],m);
       }
     }
     ctx.globalAlpha = 1;
@@ -366,7 +484,7 @@
     }
 
     const m = getMizanGeometry();
-    const pts = state.strokes.flat();
+    const pts = state.strokes.flatMap(stroke => Array.isArray(stroke?.points) ? stroke.points : []);
     if (!pts.length) return;
 
     let err=0,count=0,minY=Infinity,maxY=-Infinity;
@@ -428,6 +546,17 @@
     localStorage.setItem('mizan-nib-angle',state.nibAngleDeg);
     render();
     renderWorksheet();
+  });
+
+  $('brushColor').addEventListener('input', e => {
+    state.brushColor = e.target.value;
+    localStorage.setItem('mizan-brush-color',state.brushColor);
+  });
+
+  $('aliSmoothing').addEventListener('input', e => {
+    state.aliSmoothing = clamp(+e.target.value,0,70)/100;
+    $('aliSmoothingOut').textContent = Math.round(state.aliSmoothing*100)+'%';
+    localStorage.setItem('mizan-ali-smoothing',Math.round(state.aliSmoothing*100));
   });
 
   $('guideOpacity').addEventListener('input', e => {
