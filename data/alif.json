@@ -1,0 +1,37 @@
+{
+  "id": "alif-isolated-naskh",
+  "letter": "ا",
+  "nameAr": "الألف المفردة",
+  "script": "Naskh",
+  "status": "reference-draft",
+  "notesAr": "هندسة أولية قابلة للمعايرة عند تزويد المشروع بالنموذج المرجعي النهائي للحرف.",
+  "measurement": {
+    "unit": "nib-point",
+    "heightPoints": 5,
+    "widthPointsApprox": 0.65,
+    "baseline": 0.86,
+    "capLine": 0.14,
+    "nibAngleDeg": 70
+  },
+  "stroke": {
+    "count": 1,
+    "direction": "top-to-bottom",
+    "start": {"x": 0.52, "y": 0.14},
+    "end": {"x": 0.50, "y": 0.86},
+    "centerline": [
+      {"x": 0.52, "y": 0.14},
+      {"x": 0.505, "y": 0.28},
+      {"x": 0.505, "y": 0.45},
+      {"x": 0.515, "y": 0.64},
+      {"x": 0.50, "y": 0.86}
+    ]
+  },
+  "svgPath": "M54 25 C46 42 45 64 47 91 L58 430 C59 452 55 476 49 493 C44 472 42 451 43 430 L36 91 C34 62 38 38 54 25 Z",
+  "examples": ["ا", "أ", "إ", "آ"],
+  "practice": {
+    "columns": 8,
+    "rows": 3,
+    "modelRowOpacity": 1,
+    "ghostRowOpacity": 0.10
+  }
+}
