@@ -332,21 +332,10 @@
     });
   }
 
-  function fillNibStamp(context,p,m) {
-    context.save();
-    context.translate(p.x,p.y);
-    context.rotate(-m.alpha);
-    context.fillRect(-m.S/2,-m.S/2,m.S,m.S);
-    context.restore();
-  }
-
   function fillNibSegment(context,p0,p1,m) {
     const dx = p1.x-p0.x;
     const dy = p1.y-p0.y;
-    if (Math.hypot(dx,dy) < .25) {
-      fillNibStamp(context,p1,m);
-      return;
-    }
+    if (Math.hypot(dx,dy) < .25) return;
 
     const half = m.S/2;
     const vx = Math.cos(m.alpha)*half;
@@ -461,7 +450,6 @@
       return;
     }
 
-    processPointerSample(e);
     state.currentStroke = null;
   };
 
