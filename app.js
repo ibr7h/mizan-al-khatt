@@ -20,7 +20,7 @@
       end:{x:.5,y:1},
       centerline:[{x:.5,y:0},{x:.5,y:1}]
     },
-    practice:{columns:8,rows:3,modelRowOpacity:1,ghostRowOpacity:.10}
+    practice:{columns:9,rows:3,modelRowOpacity:1,ghostRowOpacity:.10,contextualExamples:[{id:'amwaj',display:'أَمْوَاجٌ',target:'أَ',rest:'مْوَاجٌ'},{id:'ibriq',display:'إِبْرِيقٌ',target:'إِ',rest:'بْرِيقٌ'},{id:'iqra',display:'اِقْرَأْ',target:'اِ',rest:'قْرَأْ'}]}
   };
 
   const state = {
@@ -286,23 +286,69 @@
     return `<polygon points="${broadNibPolygon(alifCenterline(m),m)}" fill="#111" opacity="${opacity}"/>`;
   }
 
+  function worksheetMarkerMarkup(kind, opacity=1) {
+    if (!kind) return '';
+    const y = kind === 'top' ? 44 : 512;
+    return '<text x="50" y="'+y+'" text-anchor="middle" fill="#b11f58" opacity="'+opacity+'" font-size="24" font-weight="700" font-family="Amiri, serif">ء</text>';
+  }
+
+  function renderContextWord(example, opacity=1) {
+    const target = example && (example.target || example.prefixTarget) ? (example.target || example.prefixTarget) : '';
+    const rest = example && example.rest ? example.rest : '';
+    const label = example && example.display ? example.display : (target + rest);
+    return '<div class="context-word-line" style="--word-opacity:'+opacity+'" dir="rtl">' +
+      '<div class="context-baseline"></div>' +
+      '<div class="context-word-text" aria-label="'+label+'">' +
+      '<span class="context-target-alif">'+target+'</span><span class="context-rest">'+rest+'</span>' +
+      '</div></div>';
+  }
+
   function renderWorksheet() {
     const host = $('practiceRows');
+    const contextHost = $('contextExamples');
+    if (!host || !contextHost) return;
+
     host.innerHTML = '';
-    for (let r=0;r<3;r++) {
+    const columns = Number(state.data.practice && state.data.practice.columns) || 9;
+    const rows = Number(state.data.practice && state.data.practice.rows) || 3;
+    const modelOpacity = Number(state.data.practice && state.data.practice.modelRowOpacity !== undefined ? state.data.practice.modelRowOpacity : 1);
+    const ghostOpacity = Number(state.data.practice && state.data.practice.ghostRowOpacity !== undefined ? state.data.practice.ghostRowOpacity : .10);
+
+    for (let r=0;r<rows;r++) {
       const row = document.createElement('div');
       row.className = 'practice-row';
+      row.style.setProperty('--worksheet-columns', columns);
       row.innerHTML = '<div class="practice-baseline"></div><span class="practice-label">'+(r===0?'نموذج':'تتبّع')+'</span>';
 
-      for (let c=0;c<8;c++) {
+      for (let c=0;c<columns;c++) {
         const cell = document.createElement('div');
         cell.className = 'practice-cell';
-        const op = r===0 ? 1 : .10;
-        cell.innerHTML = `<svg viewBox="0 0 100 520" aria-hidden="true">${worksheetAlifMarkup(op)}</svg>`;
+        const opacity = r===0 ? modelOpacity : ghostOpacity;
+        let marker = '';
+        const firstThird = Math.ceil(columns/3);
+        const secondThird = Math.ceil(columns*2/3);
+        if (c >= firstThird && c < secondThird) marker = 'top';
+        if (c >= secondThird) marker = 'bottom';
+        cell.innerHTML = '<svg viewBox="0 0 100 520" aria-hidden="true">' + worksheetAlifMarkup(opacity) + worksheetMarkerMarkup(marker,opacity) + '</svg>';
         row.appendChild(cell);
       }
       host.appendChild(row);
     }
+
+    const examples = state.data.practice && Array.isArray(state.data.practice.contextualExamples)
+      ? state.data.practice.contextualExamples
+      : FALLBACK.practice.contextualExamples;
+
+    contextHost.innerHTML = '';
+    examples.forEach(example => {
+      const card = document.createElement('article');
+      card.className = 'context-example-card';
+      card.innerHTML = '<div class="context-example-name">'+(example.display || '')+'</div>' +
+        renderContextWord(example,1) +
+        renderContextWord(example,.10) +
+        renderContextWord(example,.10);
+      contextHost.appendChild(card);
+    });
   }
 
   function canvasPoint(e) {
