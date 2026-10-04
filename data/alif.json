@@ -38,9 +38,32 @@
     ]
   },
   "practice": {
-    "columns": 8,
+    "columns": 9,
     "rows": 3,
     "modelRowOpacity": 1,
-    "ghostRowOpacity": 0.1
+    "ghostRowOpacity": 0.1,
+    "contextualExamples": [
+      {
+        "id": "amwaj",
+        "display": "أمواج",
+        "prefixTarget": "أ",
+        "rest": "مواج",
+        "targetIndex": 0
+      },
+      {
+        "id": "ibriq",
+        "display": "إبريق",
+        "prefixTarget": "إ",
+        "rest": "بريق",
+        "targetIndex": 0
+      },
+      {
+        "id": "iqra",
+        "display": "اقرأ",
+        "prefixTarget": "ا",
+        "rest": "قرأ",
+        "targetIndex": 0
+      }
+    ]
   }
 }
