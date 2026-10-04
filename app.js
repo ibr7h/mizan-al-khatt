@@ -44,6 +44,17 @@
   const canvas = $('inkCanvas');
   const ctx = canvas.getContext('2d');
 
+  const worksheetCanvas = $('worksheetInkCanvas');
+  const worksheetCtx = worksheetCanvas ? worksheetCanvas.getContext('2d', { desynchronized:true }) : null;
+  const worksheetState = {
+    enabled:true,
+    strokes:[],
+    currentStroke:null,
+    logicalWidth:1120,
+    logicalHeight:1584,
+    saveTimer:null
+  };
+
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
   const rad = deg => deg * Math.PI / 180;
 
@@ -87,6 +98,8 @@
 
     render();
     renderWorksheet();
+    loadWorksheetSession();
+    fitWorksheetPage();
   }
 
   function getMizanGeometry(overrides = {}) {
@@ -350,6 +363,320 @@
     });
   }
 
+  // ------------------------------------------------------------------
+  // INTERACTIVE A4 WORKSHEET ENGINE
+  // ------------------------------------------------------------------
+  function worksheetStorageKey() {
+    const id = state.data && state.data.id ? state.data.id : 'alif-isolated-naskh';
+    return 'mizan-worksheet-' + id + '-ink-v1';
+  }
+
+  function worksheetMetaStorageKey() {
+    const id = state.data && state.data.id ? state.data.id : 'alif-isolated-naskh';
+    return 'mizan-worksheet-' + id + '-meta-v1';
+  }
+
+  function makeWorksheetStroke(firstPoint) {
+    return {
+      points:[firstPoint],
+      started:false,
+      color:state.brushColor,
+      pointSize:state.pointSize,
+      nibAngleDeg:state.nibAngleDeg,
+      smoothing:state.aliSmoothing
+    };
+  }
+
+  function worksheetPoint(e) {
+    if (!worksheetCanvas) return {x:0,y:0,pressure:.65};
+    const r = worksheetCanvas.getBoundingClientRect();
+    return {
+      x:(e.clientX-r.left)*worksheetCanvas.width/r.width,
+      y:(e.clientY-r.top)*worksheetCanvas.height/r.height,
+      pressure:(e.pressure && e.pressure > 0) ? e.pressure : .65
+    };
+  }
+
+  function worksheetStrokeGeometry(stroke) {
+    return getMizanGeometry({
+      pointSize:stroke.pointSize,
+      angleDeg:stroke.nibAngleDeg
+    });
+  }
+
+  function drawWorksheetSegment(stroke,p0,p1) {
+    if (!worksheetCtx) return;
+    const m = worksheetStrokeGeometry(stroke);
+    worksheetCtx.fillStyle = stroke.color || state.brushColor;
+    worksheetCtx.globalAlpha = .96;
+    fillNibSegment(worksheetCtx,p0,p1,m);
+    worksheetCtx.globalAlpha = 1;
+  }
+
+  function processWorksheetSample(e) {
+    const stroke = worksheetState.currentStroke;
+    if (!stroke) return;
+
+    const raw = worksheetPoint(e);
+    const points = stroke.points;
+    const prev = points[points.length-1];
+    const distRaw = Math.hypot(raw.x-prev.x,raw.y-prev.y);
+
+    const startThreshold = Math.max(2.8,stroke.pointSize*.055);
+    if (!stroke.started) {
+      if (distRaw < startThreshold) return;
+      stroke.started = true;
+      worksheetState.strokes.push(stroke);
+    } else if (distRaw < .35) {
+      return;
+    }
+
+    const smoothness = clamp(stroke.smoothing,0,.70);
+    const baseAlpha = 1-Math.min(.92,Math.max(.08,smoothness));
+    const speedBoost = Math.min(.65,distRaw/28);
+    const effectiveAlpha = Math.min(.96,baseAlpha+speedBoost);
+
+    const smoothed = {
+      x:prev.x+(raw.x-prev.x)*effectiveAlpha,
+      y:prev.y+(raw.y-prev.y)*effectiveAlpha,
+      pressure:prev.pressure+(raw.pressure-prev.pressure)*effectiveAlpha
+    };
+
+    const lastDrawn = points[points.length-1];
+    const dist = Math.hypot(smoothed.x-lastDrawn.x,smoothed.y-lastDrawn.y);
+    const stepSize = Math.max(2.2,stroke.pointSize*.075);
+    const steps = Math.max(1,Math.min(8,Math.ceil(dist/stepSize)));
+
+    let from = lastDrawn;
+    for (let i=1;i<=steps;i++) {
+      const t=i/steps;
+      const p = {
+        x:lastDrawn.x+(smoothed.x-lastDrawn.x)*t,
+        y:lastDrawn.y+(smoothed.y-lastDrawn.y)*t,
+        pressure:lastDrawn.pressure+(smoothed.pressure-lastDrawn.pressure)*t
+      };
+      points.push(p);
+      drawWorksheetSegment(stroke,from,p);
+      from=p;
+    }
+  }
+
+  function redrawWorksheetInk() {
+    if (!worksheetCtx || !worksheetCanvas) return;
+    worksheetCtx.clearRect(0,0,worksheetCanvas.width,worksheetCanvas.height);
+
+    for (const stroke of worksheetState.strokes) {
+      if (!stroke || stroke.started === false || !Array.isArray(stroke.points) || stroke.points.length < 2) continue;
+      const m = worksheetStrokeGeometry(stroke);
+      worksheetCtx.fillStyle = stroke.color || '#173f3b';
+      worksheetCtx.globalAlpha = .96;
+      for (let i=1;i<stroke.points.length;i++) {
+        fillNibSegment(worksheetCtx,stroke.points[i-1],stroke.points[i],m);
+      }
+    }
+    worksheetCtx.globalAlpha = 1;
+  }
+
+  function saveWorksheetInk() {
+    try {
+      const serializable = worksheetState.strokes.map(stroke => ({
+        started:true,
+        color:stroke.color,
+        pointSize:stroke.pointSize,
+        nibAngleDeg:stroke.nibAngleDeg,
+        smoothing:stroke.smoothing,
+        points:stroke.points.map(p => ({
+          x:Number(p.x.toFixed(2)),
+          y:Number(p.y.toFixed(2)),
+          pressure:Number((p.pressure || .65).toFixed(3))
+        }))
+      }));
+      localStorage.setItem(worksheetStorageKey(),JSON.stringify(serializable));
+    } catch (e) {}
+  }
+
+  function queueWorksheetSave() {
+    clearTimeout(worksheetState.saveTimer);
+    worksheetState.saveTimer = setTimeout(saveWorksheetInk,120);
+  }
+
+  function saveWorksheetMeta() {
+    try {
+      localStorage.setItem(worksheetMetaStorageKey(),JSON.stringify({
+        student:$('worksheetStudentName') ? $('worksheetStudentName').value : '',
+        date:$('worksheetDate') ? $('worksheetDate').value : ''
+      }));
+    } catch (e) {}
+  }
+
+  function loadWorksheetSession() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(worksheetStorageKey()) || '[]');
+      if (Array.isArray(saved)) {
+        worksheetState.strokes = saved.filter(stroke =>
+          stroke && Array.isArray(stroke.points) && stroke.points.length > 1
+        ).map(stroke => ({
+          started:true,
+          color:stroke.color || '#173f3b',
+          pointSize:clamp(Number(stroke.pointSize)||48,12,96),
+          nibAngleDeg:clamp(Number(stroke.nibAngleDeg)||70,0,90),
+          smoothing:clamp(Number(stroke.smoothing)||.28,0,.70),
+          points:stroke.points.map(p => ({
+            x:Number(p.x)||0,
+            y:Number(p.y)||0,
+            pressure:Number(p.pressure)||.65
+          }))
+        }));
+      }
+    } catch (e) {
+      worksheetState.strokes = [];
+    }
+
+    try {
+      const meta = JSON.parse(localStorage.getItem(worksheetMetaStorageKey()) || '{}');
+      if ($('worksheetStudentName') && typeof meta.student === 'string') $('worksheetStudentName').value = meta.student;
+      if ($('worksheetDate') && typeof meta.date === 'string') $('worksheetDate').value = meta.date;
+    } catch (e) {}
+
+    if ($('worksheetDate') && !$('worksheetDate').value) {
+      const d = new Date();
+      const pad = n => String(n).padStart(2,'0');
+      $('worksheetDate').value = pad(d.getDate()) + ' / ' + pad(d.getMonth()+1) + ' / ' + d.getFullYear();
+    }
+
+    redrawWorksheetInk();
+  }
+
+  function setWorksheetDrawEnabled(enabled) {
+    worksheetState.enabled = !!enabled;
+    const btn = $('worksheetDrawToggle');
+    if (btn) {
+      btn.classList.toggle('is-active',worksheetState.enabled);
+      btn.setAttribute('aria-pressed',worksheetState.enabled ? 'true' : 'false');
+      const label = btn.querySelector('span:last-child');
+      if (label) label.textContent = worksheetState.enabled ? 'الكتابة' : 'التمرير';
+    }
+    if (worksheetCanvas) {
+      worksheetCanvas.classList.toggle('is-disabled',!worksheetState.enabled);
+      worksheetCanvas.setAttribute('aria-disabled',worksheetState.enabled ? 'false' : 'true');
+    }
+  }
+
+  function prepareWorksheetPrintInk() {
+    const image = $('worksheetPrintInk');
+    if (!image || !worksheetCanvas) return;
+    try {
+      image.src = worksheetCanvas.toDataURL('image/png');
+    } catch (e) {
+      image.removeAttribute('src');
+    }
+  }
+
+  function fitWorksheetPage() {
+    const viewport = document.querySelector('.worksheet-page-viewport');
+    const page = $('worksheetPage');
+    if (!viewport || !page) return;
+
+    const available = Math.max(280,viewport.clientWidth - 2);
+    const scale = Math.min(1,available / 794);
+    viewport.style.setProperty('--worksheet-scale',String(scale));
+    viewport.style.height = (1123 * scale) + 'px';
+  }
+
+  if (worksheetCanvas) {
+    worksheetCanvas.addEventListener('pointerdown',e => {
+      if (!worksheetState.enabled || state.mode !== 'worksheet') return;
+      e.preventDefault();
+      worksheetCanvas.setPointerCapture?.(e.pointerId);
+      worksheetState.currentStroke = makeWorksheetStroke(worksheetPoint(e));
+    });
+
+    worksheetCanvas.addEventListener('pointermove',e => {
+      if (!worksheetState.enabled || !worksheetState.currentStroke) return;
+      e.preventDefault();
+      const events = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : [e];
+      if (events.length) {
+        for (const sample of events) processWorksheetSample(sample);
+      } else {
+        processWorksheetSample(e);
+      }
+    });
+
+    const endWorksheetStroke = e => {
+      if (!worksheetState.currentStroke) return;
+      e.preventDefault();
+      if (!worksheetState.currentStroke.started) {
+        worksheetState.currentStroke = null;
+        return;
+      }
+      worksheetState.currentStroke = null;
+      queueWorksheetSave();
+    };
+
+    worksheetCanvas.addEventListener('pointerup',endWorksheetStroke);
+    worksheetCanvas.addEventListener('pointercancel',()=>{
+      worksheetState.currentStroke = null;
+      queueWorksheetSave();
+    });
+    worksheetCanvas.addEventListener('lostpointercapture',()=>{
+      worksheetState.currentStroke = null;
+      queueWorksheetSave();
+    });
+  }
+
+  if ($('worksheetDrawToggle')) {
+    $('worksheetDrawToggle').addEventListener('click',()=>{
+      setWorksheetDrawEnabled(!worksheetState.enabled);
+    });
+  }
+
+  if ($('worksheetUndoBtn')) {
+    $('worksheetUndoBtn').addEventListener('click',()=>{
+      worksheetState.strokes.pop();
+      redrawWorksheetInk();
+      saveWorksheetInk();
+    });
+  }
+
+  if ($('worksheetClearBtn')) {
+    $('worksheetClearBtn').addEventListener('click',()=>{
+      if (!worksheetState.strokes.length) return;
+      const ok = window.confirm('مسح جميع الكتابة اليدوية من ورقة التدريب؟');
+      if (!ok) return;
+      worksheetState.strokes = [];
+      redrawWorksheetInk();
+      saveWorksheetInk();
+    });
+  }
+
+  if ($('worksheetPrintBtn')) {
+    $('worksheetPrintBtn').addEventListener('click',()=>{
+      prepareWorksheetPrintInk();
+      saveWorksheetInk();
+      saveWorksheetMeta();
+      window.print();
+    });
+  }
+
+  if ($('worksheetStudentName')) {
+    $('worksheetStudentName').addEventListener('input',saveWorksheetMeta);
+  }
+
+  if ($('worksheetDate')) {
+    $('worksheetDate').addEventListener('input',saveWorksheetMeta);
+  }
+
+  window.addEventListener('beforeprint',prepareWorksheetPrintInk);
+  window.addEventListener('resize',fitWorksheetPage);
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const viewport = document.querySelector('.worksheet-page-viewport');
+    if (viewport) {
+      new ResizeObserver(fitWorksheetPage).observe(viewport);
+    }
+  }
+
+
   function canvasPoint(e) {
     const r = canvas.getBoundingClientRect();
     return {
@@ -582,6 +909,12 @@
     $('scoreBox').hidden = true;
     render();
     renderWorksheet();
+    if (state.mode === 'worksheet') {
+      requestAnimationFrame(() => {
+        fitWorksheetPage();
+        redrawWorksheetInk();
+      });
+    }
   }));
 
   $('pointSize').addEventListener('input', e => {
