@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="ميزان الخط">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=0.1.0">
+  <link rel="stylesheet" href="./styles.css?v=0.2.0">
   <title>ميزان الخط — حرف الألف</title>
 </head>
 <body>
@@ -23,7 +23,7 @@
       </div>
     </div>
     <div class="header-meta">
-      <span class="version">v0.1.0</span>
+      <span class="version">v0.2.0</span>
       <button id="installBtn" class="icon-btn" type="button" hidden aria-label="تثبيت التطبيق">＋</button>
     </div>
   </header>
@@ -48,13 +48,22 @@
       <section class="control-card">
         <div class="control-title">القياس والعرض</div>
         <label class="control-row">
-          <span>حجم نقطة القصبة</span>
-          <div><input id="pointSize" type="range" min="12" max="42" value="24"><output id="pointSizeOut">24px</output></div>
+          <span>عرض سنّ القصبة S</span>
+          <div><input id="pointSize" type="range" min="24" max="64" value="48"><output id="pointSizeOut">48px</output></div>
         </label>
         <label class="control-row">
           <span>شفافية النموذج</span>
           <div><input id="guideOpacity" type="range" min="5" max="100" value="32"><output id="guideOpacityOut">32%</output></div>
         </label>
+        <label class="control-row">
+          <span>زاوية وضع القصبة α</span>
+          <div><input id="nibAngle" type="range" min="35" max="80" value="70"><output id="nibAngleOut">70°</output></div>
+        </label>
+        <div class="mizan-law-readout">
+          <div><span>امتداد النقطة الرأسي</span><strong id="pointPitchOut">—</strong></div>
+          <div><span>طول الألف = 5 نقاط</span><strong id="alifLengthOut">—</strong></div>
+          <div><span>عرض الألف النظري</span><strong id="alifWidthOut">—</strong></div>
+        </div>
         <label class="toggle-row"><span>إظهار نقاط الميزان</span><input id="showPoints" type="checkbox" checked></label>
         <label class="toggle-row"><span>إظهار اتجاه الضربة</span><input id="showDirection" type="checkbox" checked></label>
         <label class="toggle-row"><span>إظهار خطوط القياس</span><input id="showGuides" type="checkbox" checked></label>
@@ -63,8 +72,10 @@
       <section class="control-card lesson-card">
         <div class="control-title">قاعدة الألف</div>
         <p><strong>الارتفاع:</strong> <span id="heightPoints">5 نقاط</span></p>
-        <p><strong>الضربات:</strong> ضربة واحدة من أعلى إلى أسفل.</p>
+        <p><strong>الضربات:</strong> ضربة واحدة من أعلى إلى أسفل بالقصبة العريضة.</p>
         <p><strong>المرجع:</strong> خط القمة ← خط الأساس.</p>
+        <p><strong>قانون النقطة:</strong> الوحدة الرأسية = S × (cos α + sin α).</p>
+        <p><strong>الترتيب:</strong> عمودي محسوب هندسيًا دون تباعد ثابت مصطنع.</p>
         <p class="draft-note">هندسة الإصدار الحالي مرجعية أولية، وستُعاير بالنماذج التي ستزوّد المشروع بها.</p>
       </section>
 
@@ -120,6 +131,6 @@
     <span>© 2026 Ibrahim Alneami — All Rights Reserved</span>
   </footer>
 
-  <script src="./app.js?v=0.1.0"></script>
+  <script src="./app.js?v=0.2.0"></script>
 </body>
 </html>
