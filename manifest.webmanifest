@@ -4,7 +4,7 @@
   "description": "مختبر تعليمي لهندسة الخط العربي وميزان النقاط والتتبع.",
   "lang": "ar",
   "dir": "rtl",
-  "start_url": "./index.html?v=0.3.0",
+  "start_url": "./index.html?v=0.4.0",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
