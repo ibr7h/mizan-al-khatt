@@ -453,15 +453,15 @@
   const endStroke = e => {
     if (!state.currentStroke) return;
     e.preventDefault();
-    processPointerSample(e);
 
-    // If the pen never crossed the movement threshold, discard the contact.
-    // This prevents isolated nib stamps from appearing later on redraw.
+    // A press/release without an actual move event is not a stroke.
+    // Do not let release jitter create a synthetic qalam dot.
     if (!state.currentStroke.started) {
       state.currentStroke = null;
       return;
     }
 
+    processPointerSample(e);
     state.currentStroke = null;
   };
 
