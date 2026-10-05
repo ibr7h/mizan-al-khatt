@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="ميزان الخط">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=0.4.0">
-  <title>ميزان الخط — حرف الألف</title>
+  <link rel="stylesheet" href="./styles.css?v=0.5.0">
+  <title>ميزان الخط — الحرف العربي</title>
 </head>
 <body>
   <header class="app-header">
@@ -23,13 +23,13 @@
       </div>
     </div>
     <div class="header-meta">
-      <span class="version">v0.4.0</span>
+      <span class="version">v0.5.0</span>
       <button id="installBtn" class="icon-btn" type="button" hidden aria-label="تثبيت التطبيق">＋</button>
     </div>
   </header>
 
   <main class="app-shell">
-    <aside class="control-panel" aria-label="إعدادات حرف الألف">
+    <aside class="control-panel" aria-label="إعدادات الحرف العربي">
       <div class="panel-head">
         <div>
           <span class="eyebrow">الحرف الحالي</span>
@@ -37,6 +37,19 @@
         </div>
         <span class="letter-chip" id="letterChip">ا</span>
       </div>
+
+      <section class="letter-family-card" aria-label="اختيار الحرف">
+        <div class="letter-family-label">
+          <span>الحروف المتاحة</span>
+          <strong id="familyName">الألف + مجموعة الباء</strong>
+        </div>
+        <div id="letterSelector" class="letter-selector" role="tablist" aria-label="الحروف">
+          <button type="button" class="letter-select-btn is-active" data-letter-file="alif" data-letter="ا" role="tab" aria-selected="true">ا</button>
+          <button type="button" class="letter-select-btn" data-letter-file="baa" data-letter="ب" role="tab" aria-selected="false">ب</button>
+          <button type="button" class="letter-select-btn" data-letter-file="taa" data-letter="ت" role="tab" aria-selected="false">ت</button>
+          <button type="button" class="letter-select-btn" data-letter-file="thaa" data-letter="ث" role="tab" aria-selected="false">ث</button>
+        </div>
+      </section>
 
       <nav class="mode-switch" aria-label="أوضاع التدريب">
         <button class="mode-btn is-active" data-mode="explain">الشرح</button>
@@ -74,8 +87,8 @@
         </div>
         <div class="mizan-law-readout">
           <div><span>امتداد النقطة الرأسي</span><strong id="pointPitchOut">—</strong></div>
-          <div><span>طول الألف = 5 نقاط</span><strong id="alifLengthOut">—</strong></div>
-          <div><span>عرض الألف النظري</span><strong id="alifWidthOut">—</strong></div>
+          <div><span id="primaryMeasureLabel">القياس الأساسي</span><strong id="alifLengthOut">—</strong></div>
+          <div><span id="secondaryMeasureLabel">عرض الضربة النظري</span><strong id="alifWidthOut">—</strong></div>
         </div>
         <label class="toggle-row"><span>إظهار نقاط الميزان</span><input id="showPoints" type="checkbox" checked></label>
         <label class="toggle-row"><span>إظهار اتجاه الضربة</span><input id="showDirection" type="checkbox" checked></label>
@@ -83,12 +96,11 @@
       </section>
 
       <section class="control-card lesson-card">
-        <div class="control-title">قاعدة الألف</div>
-        <p><strong>الارتفاع:</strong> <span id="heightPoints">5 نقاط</span></p>
-        <p><strong>الضربات:</strong> ضربة واحدة من أعلى إلى أسفل بالقصبة العريضة.</p>
-        <p><strong>المرجع:</strong> خط القمة ← خط الأساس.</p>
-        <p><strong>قانون النقطة:</strong> الوحدة الرأسية = S × (cos α + sin α).</p>
-        <p><strong>الترتيب:</strong> عمودي محسوب هندسيًا دون تباعد ثابت مصطنع.</p>
+        <div class="control-title" id="lessonTitle">قاعدة الألف</div>
+        <p><strong>الميزان:</strong> <span id="measurementSummary">5 نقاط رأسيًا</span></p>
+        <p><strong>الضربات:</strong> <span id="strokeSummary">ضربة واحدة من أعلى إلى أسفل.</span></p>
+        <p><strong>النقاط:</strong> <span id="dotSummary">لا توجد نقاط للحرف.</span></p>
+        <p><strong>المرجع:</strong> <span id="referenceSummary">خط القمة ← خط الأساس.</span></p>
         <p class="draft-note">هندسة الإصدار الحالي مرجعية أولية، وستُعاير بالنماذج التي ستزوّد المشروع بها.</p>
       </section>
 
@@ -111,7 +123,7 @@
       <div class="workspace-head">
         <div>
           <span class="eyebrow">خط النسخ</span>
-          <h2 id="workspaceTitle">تشريح حرف الألف</h2>
+          <h2 id="workspaceTitle">تشريح الحرف العربي</h2>
         </div>
         <div class="legend">
           <span><i class="swatch burgundy"></i>النموذج</span>
@@ -121,8 +133,8 @@
       </div>
 
       <div id="stage" class="stage" data-mode="explain">
-        <svg id="guideSvg" class="guide-svg" viewBox="0 0 1000 720" role="img" aria-label="هندسة حرف الألف"></svg>
-        <canvas id="inkCanvas" width="1000" height="720" aria-label="لوحة تدريب حرف الألف"></canvas>
+        <svg id="guideSvg" class="guide-svg" viewBox="0 0 1000 720" role="img" aria-label="هندسة الحرف العربي"></svg>
+        <canvas id="inkCanvas" width="1000" height="720" aria-label="لوحة تدريب الحرف العربي"></canvas>
         <div class="stage-note" id="stageNote">اسحب القلم من أعلى الألف إلى خط الأساس.</div>
       </div>
 
@@ -130,7 +142,7 @@
         <div class="worksheet-title worksheet-screen-only">
           <div>
             <span>ورقة التدريب</span>
-            <strong>الألف المفردة في خط النسخ</strong>
+            <strong>الحرف المفرد في خط النسخ</strong>
           </div>
           <span class="worksheet-badge">5 نقاط</span>
         </div>
@@ -149,7 +161,7 @@
             <header class="worksheet-print-header">
               <div class="worksheet-print-brand">
                 <span>ميزان الخط</span>
-                <strong>ورقة تدريب حرف الألف — خط النسخ</strong>
+                <strong id="worksheetPrintTitle">ورقة تدريب الحرف العربي — خط النسخ</strong>
               </div>
               <div class="worksheet-student-fields">
                 <label>اسم الطالب <input id="worksheetStudentName" type="text" autocomplete="name" placeholder="................................"></label>
@@ -159,7 +171,7 @@
 
             <section class="worksheet-section worksheet-alif-section">
               <div class="worksheet-section-head">
-                <strong>التدريب على الألف المفردة</strong>
+                <strong id="worksheetLetterSectionTitle">التدريب على الألف المفردة</strong>
                 <span>نموذج ← تتبّع ← تتبّع</span>
               </div>
               <div id="practiceRows" class="practice-rows"></div>
@@ -167,14 +179,14 @@
 
             <section class="worksheet-section worksheet-context-section">
               <div class="worksheet-section-head">
-                <strong>الألف داخل الكلمات</strong>
-                <span>تمييز الحرف المستهدف ثم التتبّع السياقي</span>
+                <strong id="worksheetContextTitle">الألف داخل الكلمات</strong>
+                <span id="worksheetContextSubtitle">تمييز الحرف المستهدف ثم التتبّع السياقي</span>
               </div>
               <div id="contextExamples" class="context-examples"></div>
             </section>
 
             <footer class="worksheet-print-footer">
-              <span>حرف الألف — 5 نقاط</span>
+              <span id="worksheetFooterLabel">الحرف العربي — 5 نقاط</span>
               <span>© 2026 Ibrahim Alneami</span>
             </footer>
 
@@ -191,6 +203,6 @@
     <span>© 2026 Ibrahim Alneami — All Rights Reserved</span>
   </footer>
 
-  <script src="./app.js?v=0.4.0"></script>
+  <script src="./app.js?v=0.5.0"></script>
 </body>
 </html>
