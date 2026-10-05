@@ -124,7 +124,9 @@
         "textX": 27,
         "textY": 159
       }
-    ]
+    ],
+    "analysisAsset": "./assets/vector/baa-family-analysis.svg",
+    "bodyAsset": "./assets/vector/baa-family-body.svg"
   },
   "practice": {
     "columns": 6,
@@ -175,5 +177,13 @@
         ]
       }
     ]
+  },
+  "reference": {
+    "source": "Naskh_Kids-Booklet_Alkhattat.pdf",
+    "sourceUrl": "https://alkhattat.net/Calligraphy_booklets/Naskh_Kids-Booklet_Alkhattat.pdf",
+    "printedPage": 5,
+    "vectorMethod": "traced-from-reference",
+    "analysisAsset": "./assets/vector/baa-family-analysis.svg",
+    "bodyAsset": "./assets/vector/baa-family-body.svg"
   }
 }
