@@ -296,63 +296,61 @@
     return { x: t.tx + p.x * t.scale, y: t.ty + p.y * t.scale };
   }
 
-  function familyGuideSvg() {
-    const g = state.data.glyph;
-    if (!g || !state.showGuides) return '';
-    const base = transformFamilyPoint({ x: 0, y: g.baselineY });
-    const cap = transformFamilyPoint({ x: 0, y: g.capLineY });
+  function familyGuideSvg(section = 'single') {
+    if (!state.showGuides) return '';
+    const capY = section === 'explain-top' ? 145 : section === 'explain-bottom' ? 455 : 165;
+    const baseY = section === 'explain-top' ? 425 : section === 'explain-bottom' ? 690 : 510;
     return [
-      line(100, cap.y, 900, cap.y, '#cfd3d5', 2),
-      line(100, base.y, 900, base.y, '#cfd3d5', 2),
-      '<text x="930" y="' + (cap.y + 6) + '" text-anchor="end" fill="#9b938a" font-size="18">خط القمة</text>',
-      '<text x="930" y="' + (base.y + 6) + '" text-anchor="end" fill="#9b938a" font-size="18">خط الأساس</text>'
+      line(110, capY, 890, capY, '#cfd3d5', 2),
+      line(110, baseY, 890, baseY, '#cfd3d5', 2),
+      '<text x="935" y="' + (capY + 6) + '" text-anchor="end" fill="#9b938a" font-size="17">خط القمة</text>',
+      '<text x="935" y="' + (baseY + 6) + '" text-anchor="end" fill="#9b938a" font-size="17">خط الأساس</text>'
     ].join('');
   }
 
-  function familyBodySvg(opacity = 1, colored = false) {
-    const g = state.data.glyph;
-    if (!g) return '';
-    const t = familyStageTransform();
-    const transform = 'translate(' + t.tx + ' ' + t.ty + ') scale(' + t.scale + ')';
-    if (colored && Array.isArray(g.segments)) {
-      return '<g transform="' + transform + '" opacity="' + opacity + '">' +
-        g.segments.map(seg => '<path d="' + seg.path + '" fill="' + seg.color + '"/>').join('') + '</g>';
-    }
-    return '<g transform="' + transform + '" opacity="' + opacity + '"><path d="' + g.bodyPath + '" fill="#171412"/></g>';
+  function familyBodySvg(opacity = 1, colored = false, box = null) {
+    const b = box || { x: 290, y: 205, width: 430, height: 214 };
+    const href = colored
+      ? './assets/vector/baa-family-analysis.svg?v=0.5.1'
+      : './assets/vector/baa-family-body.svg?v=0.5.1';
+    return '<image href="' + href + '" x="' + b.x + '" y="' + b.y + '" width="' + b.width + '" height="' + b.height +
+      '" preserveAspectRatio="xMidYMid meet" opacity="' + opacity + '"/>';
   }
 
   function familyDotsSvg(opacity = 1) {
-    const dots = state.data.dots && Array.isArray(state.data.dots.positions) ? state.data.dots.positions : [];
-    const size = Math.max(23, state.pointSize * 0.70);
-    return dots.map(dot => {
-      const p = transformFamilyPoint(dot);
-      return qalamDotSvg(p.x, p.y, size, opacity, '#b11f58');
-    }).join('');
+    const size = Math.max(24, state.pointSize * 0.70);
+    if (state.data.letter === 'ب') return qalamDotSvg(505, 535, size, opacity, '#b11f58', -45);
+    if (state.data.letter === 'ت') {
+      return qalamDotSvg(475, 250, size, opacity, '#b11f58', -45) +
+        qalamDotSvg(535, 250, size, opacity, '#b11f58', -45);
+    }
+    if (state.data.letter === 'ث') {
+      return qalamDotSvg(472, 255, size, opacity, '#b11f58', -45) +
+        qalamDotSvg(538, 255, size, opacity, '#b11f58', -45) +
+        qalamDotSvg(505, 205, size, opacity, '#b11f58', -45);
+    }
+    return '';
   }
 
   function familyArrowsSvg() {
     if (!state.showDirection) return '';
-    const g = state.data.glyph;
-    if (!g) return '';
-    const t = familyStageTransform();
-    let body = '<defs><marker id="arrow-f" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#b11f58"/></marker></defs>';
-    for (const a of (g.arrows || [])) {
-      body += '<g transform="translate(' + t.tx + ' ' + t.ty + ') scale(' + t.scale + ')">' +
-        '<path d="' + a.path + '" fill="none" stroke="#b11f58" stroke-width="2.6" marker-end="url(#arrow-f)"/>' +
-        '<text x="' + a.textX + '" y="' + a.textY + '" fill="#312b27" font-size="20" font-weight="700">' + a.n + '</text></g>';
-    }
-    return body;
+    return '<defs><marker id="arrow-f" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">' +
+      '<path d="M0,0 L0,6 L7,3 z" fill="#b11f58"/></marker></defs>' +
+      '<path d="M735 225 C748 252 746 286 733 312" fill="none" stroke="#b11f58" stroke-width="3" marker-end="url(#arrow-f)"/>' +
+      '<text x="760" y="250" fill="#312b27" font-size="25" font-weight="700">١</text>' +
+      '<path d="M690 445 C595 478 465 480 335 445" fill="none" stroke="#b11f58" stroke-width="3" marker-end="url(#arrow-f)"/>' +
+      '<text x="510" y="485" fill="#312b27" font-size="25" font-weight="700">٢</text>' +
+      '<path d="M275 392 C250 365 246 320 267 278" fill="none" stroke="#b11f58" stroke-width="3" marker-end="url(#arrow-f)"/>' +
+      '<text x="225" y="350" fill="#312b27" font-size="25" font-weight="700">٣</text>';
   }
 
   function familyMeasureDotsSvg() {
     if (!state.showPoints) return '';
-    const count = Number(state.data.measurement && state.data.measurement.bodyWidthPoints) || 4;
-    const size = Math.max(24, state.pointSize * 0.70);
-    let h = '';
-    for (let i = 0; i < count; i++) {
-      const x = 690 - i * size * 1.45;
-      h += qalamDotSvg(x, 565, size, 1, '#b11f58', -45);
-    }
+    const dot = 34;
+    let h = familyBodySvg(1, true, { x: 305, y: 505, width: 395, height: 197 });
+    const xs = [385, 455, 525, 595];
+    for (const x of xs) h += qalamDotSvg(x, 515, dot, 1, '#b11f58', -45);
+    h += qalamDotSvg(725, 646, dot, 1, '#b11f58', -45);
     return h;
   }
 
@@ -363,7 +361,11 @@
 
   function buildExplain() {
     if (isBaaFamily()) {
-      return familyGuideSvg() + familyBodySvg(1, true) + familyDotsSvg(1) + familyArrowsSvg() + familyMeasureDotsSvg();
+      return familyGuideSvg('explain-top') +
+        familyBodySvg(1, true, { x: 300, y: 205, width: 420, height: 209 }) +
+        familyArrowsSvg() +
+        familyGuideSvg('explain-bottom') +
+        familyMeasureDotsSvg();
     }
     const m = getMizanGeometry();
     return alifGuides(m) + alifSvg(m, 1, '#b11f58') + alifPoints(m, 1) + alifDirection(m);
@@ -371,7 +373,9 @@
 
   function buildTrace() {
     if (isBaaFamily()) {
-      return familyGuideSvg() + familyBodySvg(state.guideOpacity, false) + familyDotsSvg(Math.min(0.55, state.guideOpacity + 0.15));
+      return familyGuideSvg('single') +
+        familyBodySvg(state.guideOpacity, false, { x: 285, y: 265, width: 440, height: 219 }) +
+        familyDotsSvg(Math.min(0.55, state.guideOpacity + 0.15));
     }
     const m = getMizanGeometry();
     return alifGuides(m, 100, 900) + alifSvg(m, state.guideOpacity, '#b11f58') + alifPoints(m, Math.min(0.55, state.guideOpacity + 0.15));
@@ -379,12 +383,8 @@
 
   function buildFree() {
     if (isBaaFamily()) {
-      let h = familyGuideSvg();
-      const g = state.data.glyph;
-      if (state.showGuides && g) {
-        const base = transformFamilyPoint({ x: 0, y: g.baselineY });
-        h += line(100, base.y - 120, 900, base.y - 120, '#eeeae4', 1, '8 8');
-      }
+      let h = familyGuideSvg('single');
+      if (state.showGuides) h += line(110, 345, 890, 345, '#eeeae4', 1, '8 8');
       return h;
     }
     const m = getMizanGeometry();
@@ -441,15 +441,17 @@
   }
 
   function worksheetFamilyMarkup(opacity = 1) {
-    const g = state.data.glyph;
-    if (!g) return '';
-    let h = '<g transform="translate(6 35) scale(.40)" opacity="' + opacity + '"><path d="' + g.bodyPath + '" fill="#111"/></g>';
-    const dotSize = 18;
-    const dots = state.data.dots && Array.isArray(state.data.dots.positions) ? state.data.dots.positions : [];
-    for (const dot of dots) {
-      const x = 6 + dot.x * 0.40;
-      const y = 35 + dot.y * 0.40;
-      h += qalamDotSvg(x, y, dotSize, opacity, '#111', -45);
+    let h = '<image href="./assets/vector/baa-family-body.svg?v=0.5.1" x="22" y="48" width="176" height="88" preserveAspectRatio="xMidYMid meet" opacity="' + opacity + '"/>';
+    const dotSize = 15;
+    if (state.data.letter === 'ب') {
+      h += qalamDotSvg(110, 154, dotSize, opacity, '#111', -45);
+    } else if (state.data.letter === 'ت') {
+      h += qalamDotSvg(99, 38, dotSize, opacity, '#111', -45);
+      h += qalamDotSvg(121, 38, dotSize, opacity, '#111', -45);
+    } else if (state.data.letter === 'ث') {
+      h += qalamDotSvg(98, 42, dotSize, opacity, '#111', -45);
+      h += qalamDotSvg(122, 42, dotSize, opacity, '#111', -45);
+      h += qalamDotSvg(110, 20, dotSize, opacity, '#111', -45);
     }
     return h;
   }
