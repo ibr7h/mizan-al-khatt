@@ -1,4 +1,4 @@
-const CACHE = 'mizan-al-khatt-v0.5.0';
+const CACHE = 'mizan-al-khatt-v0.5.1';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,8 @@ const ASSETS = [
   './data/baa.json',
   './data/taa.json',
   './data/thaa.json',
+  './assets/vector/baa-family-analysis.svg',
+  './assets/vector/baa-family-body.svg',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
